@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#5B61F6" />
+  <title>MyDay AI — Intelligent Daily Planner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark">✦</div><div><strong>MyDay</strong><span>AI planner</span></div></div>
+      <nav>
+        <button class="nav-item active" data-view="today">☀️ <span>Today</span></button>
+        <button class="nav-item" data-view="review">🌙 <span>Review</span></button>
+        <button class="nav-item" data-view="history">📅 <span>History</span></button>
+      </nav>
+      <div class="sidebar-note"><div class="mini-orb">AI</div><p>Your plan is yours. MyDay AI helps you remember it.</p></div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div><p class="eyebrow" id="dateLabel"></p><h1 id="pageTitle">Today</h1></div>
+        <div class="top-actions"><button class="icon-btn" id="themeBtn" aria-label="Toggle theme">◐</button><div class="avatar">Y</div></div>
+      </header>
+
+      <section id="todayView" class="view active-view">
+        <div class="hero-grid">
+          <section class="hero-card gradient-card">
+            <div><p class="eyebrow light">GOOD MORNING 👋</p><h2>What do you want to accomplish today?</h2><p class="muted light-muted">Tell MyDay in natural language. We’ll turn it into a clear plan.</p></div>
+            <div class="planner-input-wrap">
+              <textarea id="planInput" rows="4" placeholder="Today I want to study English, exercise for 30 minutes, work on my project, read for 20 minutes, and go to the mosque."></textarea>
+              <div class="input-actions"><button class="secondary-btn" id="voiceBtn">🎙️ Speak</button><button class="primary-btn" id="planBtn">✨ Build my plan</button></div>
+            </div>
+          </section>
+          <section class="progress-card"><div class="section-head"><div><p class="eyebrow">TODAY'S PROGRESS</p><h3 id="progressText">0 / 0 completed</h3></div><div class="progress-ring" id="progressRing"><span id="progressPct">0%</span></div></div><div class="progress-bar"><span id="progressBar"></span></div><p class="muted" id="progressHint">Create your first plan to get started.</p></section>
+        </div>
+
+        <section class="content-card"><div class="section-head"><div><p class="eyebrow">YOUR PLAN</p><h3>Today's tasks</h3></div><button class="ghost-btn" id="addTaskBtn">＋ Add task</button></div><div id="taskList" class="task-list"></div></section>
+        <section class="content-card ai-insight"><div class="ai-icon">✦</div><div><p class="eyebrow">MYDAY AI</p><h3 id="aiMessage">I’ll keep your plan in view throughout the day.</h3><p class="muted">At night, open Review and tell me what you actually did. I’ll compare it with your plan.</p></div></section>
+      </section>
+
+      <section id="reviewView" class="view">
+        <div class="review-header"><div><p class="eyebrow">END OF DAY</p><h2>Review your day 🌙</h2><p class="muted">Tell me what happened. I’ll compare it with your plan and ask only the questions that matter.</p></div><div class="review-stat"><strong id="reviewCompleted">0</strong><span>completed</span></div></div>
+        <section class="content-card"><label class="field-label">What did you do today?</label><textarea id="reviewInput" class="large-input" rows="8" placeholder="I studied English and worked on my project, but I didn't exercise..."></textarea><div class="input-actions"><button class="secondary-btn" id="reviewVoiceBtn">🎙️ Speak</button><button class="primary-btn" id="reviewBtn">🧠 Analyze my day</button></div></section>
+        <section id="reviewResult" class="review-result hidden"></section>
+      </section>
+
+      <section id="historyView" class="view"><div class="review-header"><div><p class="eyebrow">YOUR JOURNEY</p><h2>Daily history 📅</h2><p class="muted">A simple record of planned and completed work.</p></div></div><div id="historyList" class="history-grid"></div></section>
+    </main>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
