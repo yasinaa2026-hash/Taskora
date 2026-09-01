@@ -1,29 +1,71 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#5B61F6"><title>إدارة مهامي</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#6C63FF">
+  <title>مهماتي — إدارة المهام</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="app-shell">
-<aside class="sidebar"><div class="brand"><div class="brand-mark">✓</div><div><strong>إدارة مهامي</strong><span>Task Manager</span></div></div>
-<nav><button class="nav-item active" data-view="today">📋 <span>مهامي</span></button><button class="nav-item" data-view="history">📅 <span>السجل</span></button></nav>
-</aside>
-<main class="main">
-<header class="topbar"><div><p class="eyebrow" id="dateLabel"></p><h1>مهامي اليوم</h1></div><div class="avatar">Y</div></header>
-<section id="todayView" class="view active-view">
-<section class="hero-card"><p class="eyebrow light">إدارة المهام</p><h2>ما الذي تريد إنجازه اليوم؟</h2><p class="light-muted">اكتب مهامك أو تحدث، وسنضعها في قائمتك.</p>
-<textarea id="planInput" rows="3" placeholder="مثال: دراسة الإنجليزية، إنهاء المشروع، قراءة 20 دقيقة..."></textarea>
-<div class="input-actions"><button class="secondary-btn" id="voiceBtn">🎙️ تحدث</button><button class="primary-btn" id="planBtn">＋ إضافة المهام</button></div></section>
-<section class="progress-card"><div class="section-head"><div><p class="eyebrow">التقدم</p><h3 id="progressText">0 / 0 مكتملة</h3></div><div class="progress-ring"><span id="progressPct">0%</span></div></div><div class="progress-bar"><span id="progressBar"></span></div><p class="muted" id="progressHint">أضف أول مهمة للبدء.</p></section>
-<section class="content-card"><div class="section-head"><div><p class="eyebrow">قائمة المهام</p><h3>مهامي</h3></div><button class="ghost-btn" id="addTaskBtn">＋ مهمة جديدة</button></div><div id="taskList" class="task-list"></div></section>
-</section>
-<section id="historyView" class="view"><div class="content-card"><p class="eyebrow">السجل</p><h2>الأيام السابقة</h2><div id="historyList"></div></div></section>
-</main></div>
-<script src="task-manager.js"></script>
-<script>
-const dateLabel=document.getElementById('dateLabel');dateLabel.textContent=new Intl.DateTimeFormat('ar',{weekday:'long',month:'long',day:'numeric',year:'numeric'}).format(new Date());
-document.querySelectorAll('.nav-item').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.view').forEach(v=>v.classList.remove('active-view'));document.getElementById(btn.dataset.view+'View').classList.add('active-view');document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));btn.classList.add('active');}));
-</script>
-</body></html>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark">✓</div><div><strong>مهماتي</strong><span>Task Quest</span></div></div>
+      <nav>
+        <button class="nav-item active" data-view="today"><span>🏠</span><span>اليوم</span></button>
+        <button class="nav-item" data-view="quests"><span>🎯</span><span>المهام</span></button>
+      </nav>
+      <div class="side-level"><div class="side-level-top"><span>مستواك</span><strong id="levelLabel">1</strong></div><div class="mini-xp"><span id="xpBar"></span></div><small id="xpLabel">0 / 100 XP</small></div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div><p class="eyebrow" id="dateLabel"></p><h1>مهماتي اليوم 👋</h1></div>
+        <button class="theme-btn" id="themeBtn" aria-label="تبديل الوضع الليلي">🌙 <span>الوضع الليلي</span></button>
+      </header>
+
+      <section id="todayView" class="view active-view">
+        <div class="welcome-grid">
+          <section class="hero-card">
+            <div class="hero-glow"></div>
+            <div class="hero-copy"><p class="eyebrow light">⚡ مهمة اليوم</p><h2>حوّل يومك إلى لعبة.</h2><p>أضف مهامك، أنجزها، واجمع XP وارفع مستواك.</p></div>
+            <div class="task-input"><input id="taskInput" maxlength="120" placeholder="مثال: دراسة الإنجليزية لمدة 30 دقيقة"><input id="timeInput" type="time" aria-label="وقت المهمة"><button id="addBtn">＋ أضف</button></div>
+          </section>
+          <section class="stats-card">
+            <div class="stats-orb"><span id="todayPercent">0%</span></div>
+            <div><p class="eyebrow">تقدم اليوم</p><h3 id="todayProgress">0 / 0</h3><p class="muted">أنجز المهام لتحصل على XP.</p></div>
+            <div class="streak"><span>🔥</span><div><strong id="streakValue">0</strong><small>أيام متتالية</small></div></div>
+          </section>
+        </div>
+
+        <section class="quest-panel">
+          <div class="section-head"><div><p class="eyebrow">🎮 مهماتك</p><h2>التحديات اليومية</h2></div><div class="coins">⭐ <strong id="coinsValue">0</strong> XP</div></div>
+          <div id="taskList" class="task-grid"></div>
+        </section>
+
+        <section class="fun-card"><div class="fun-icon">🏆</div><div><strong id="motivationText">جاهز لأول مهمة؟</strong><p id="motivationSub">ابدأ بمهمة واحدة فقط، وبعدها أكمل الباقي.</p></div></section>
+      </section>
+
+      <section id="questsView" class="view">
+        <div class="page-heading"><p class="eyebrow">🎯 QUESTS</p><h2>كل مهامك</h2><p class="muted">أضف المهام واحذفها أو أعد فتحها متى أردت.</p></div>
+        <section class="quest-panel"><div id="allTasksList" class="task-grid"></div></section>
+      </section>
+    </main>
+  </div>
+  <script src="task-manager.js"></script>
+  <script>
+    const dateLabel = document.getElementById('dateLabel');
+    dateLabel.textContent = new Intl.DateTimeFormat('ar',{weekday:'long',month:'long',day:'numeric',year:'numeric'}).format(new Date());
+    document.querySelectorAll('.nav-item').forEach(btn=>btn.addEventListener('click',()=>{
+      document.querySelectorAll('.view').forEach(v=>v.classList.remove('active-view'));
+      document.getElementById(btn.dataset.view+'View').classList.add('active-view');
+      document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active')); btn.classList.add('active');
+    }));
+    document.getElementById('themeBtn').addEventListener('click',()=>{
+      document.body.classList.toggle('dark');
+      localStorage.setItem('myday-theme',document.body.classList.contains('dark')?'dark':'light');
+    });
+    if(localStorage.getItem('myday-theme')==='dark') document.body.classList.add('dark');
+  </script>
+</body>
+</html>
