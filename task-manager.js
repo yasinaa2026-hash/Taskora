@@ -1,97 +1,29 @@
-const STORAGE_KEY = 'myday-task-manager-v1';
-
-let data = (() => {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { tasks: [] }; }
-  catch { return { tasks: [] }; }
-})();
-
-const $ = (id) => document.getElementById(id);
-const save = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-
-function render() {
-  const list = $('taskList');
-  const total = data.tasks.length;
-  const done = data.tasks.filter(t => t.done).length;
-  const pending = total - done;
-  if ($('progressText')) $('progressText').textContent = `${done} / ${total} completed`;
-  if ($('progressPct')) $('progressPct').textContent = `${total ? Math.round(done / total * 100) : 0}%`;
-  if ($('progressBar')) $('progressBar').style.width = `${total ? Math.round(done / total * 100) : 0}%`;
-  if ($('progressHint')) $('progressHint').textContent = total ? `${pending} task${pending === 1 ? '' : 's'} remaining.` : 'Add your first task.';
-  if (!list) return;
-  list.innerHTML = total ? data.tasks.map((t, i) => `
-    <div class="task ${t.done ? 'completed' : ''}">
-      <button class="check" onclick="TaskManager.toggle(${i})">${t.done ? '✓' : ''}</button>
-      <div><div class="task-title">${escapeHtml(t.title)}</div><div class="task-meta">${t.time ? escapeHtml(t.time) : 'No time set'}${t.duration ? ` • ${escapeHtml(t.duration)} min` : ''}</div></div>
-      <button class="task-delete" aria-label="Delete task" onclick="TaskManager.remove(${i})">×</button>
-    </div>`).join('') : '<div class="muted empty-state">No tasks yet.</div>';
+const STORAGE_KEY='myday-game-v2';
+let data=load();
+const $=id=>document.getElementById(id);
+function load(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||{tasks:[],xp:0,streak:0,lastDate:null}}catch{return{tasks:[],xp:0,streak:0,lastDate:null}}}
+function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(data))}
+function todayKey(){return new Date().toISOString().slice(0,10)}
+function levelInfo(xp){return{level:Math.floor(xp/100)+1,inLevel:xp%100}}
+function escapeHtml(v=''){return String(v).replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]))}
+function render(){
+ const total=data.tasks.length,done=data.tasks.filter(t=>t.done).length,pct=total?Math.round(done/total*100):0,info=levelInfo(data.xp);
+ if($('todayProgress'))$('todayProgress').textContent=`${done} / ${total}`;
+ if($('todayPercent'))$('todayPercent').textContent=`${pct}%`;
+ if($('coinsValue'))$('coinsValue').textContent=data.xp;
+ if($('levelLabel'))$('levelLabel').textContent=info.level;
+ if($('xpLabel'))$('xpLabel').textContent=`${info.inLevel} / 100 XP`;
+ if($('xpBar'))$('xpBar').style.width=`${info.inLevel}%`;
+ const orb=document.querySelector('.stats-orb');if(orb)orb.style.background=`conic-gradient(var(--primary) ${pct*3.6}deg,#ececff 0deg)`;
+ if($('streakValue'))$('streakValue').textContent=data.streak;
+ const html=total?data.tasks.map((t,i)=>`<article class="task ${t.done?'completed':''}"><button class="check" onclick="TaskManager.toggle(${i})">${t.done?'✓':''}</button><div><div class="task-title">${escapeHtml(t.title)}</div><div class="task-meta">${t.time?escapeHtml(t.time):'بدون وقت'}${t.duration?` • ${escapeHtml(t.duration)} دقيقة`:''}</div></div><button class="task-delete" onclick="TaskManager.remove(${i})">×</button></article>`).join(''):'<div class="empty-state">🎮 لا توجد مهام بعد — أضف أول تحدٍ لك!</div>';
+ if($('taskList'))$('taskList').innerHTML=html;if($('allTasksList'))$('allTasksList').innerHTML=html;
+ if($('motivationText'))$('motivationText').textContent=total===0?'جاهز لأول مهمة؟':pct===100?'🔥 أنهيت كل التحديات!':pct>=50?'💪 أنت في منتصف الطريق!':'🚀 استمر، كل مهمة تعطيك XP!';
+ if($('motivationSub'))$('motivationSub').textContent=total===0?'ابدأ بمهمة واحدة فقط.':`${total-done} مهام متبقية اليوم.`;
 }
-
-function escapeHtml(value = '') {
-  return String(value).replace(/[&<>\"]/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '\"':'&quot;' })[ch]);
-}
-
-function addTask(title, time = '', duration = '') {
-  const clean = String(title || '').trim();
-  if (!clean) return false;
-  data.tasks.push({ id: Date.now(), title: clean, time: String(time || ''), duration: String(duration || ''), done: false });
-  save(); render(); return true;
-}
-
-function parseSimplePlan(text) {
-  const source = text.trim();
-  if (!source) return [];
-  const chunks = source.split(/(?:,|\n|\band\b|\bthen\b|\balso\b|،|و|ثم)/i).map(x => x.trim()).filter(Boolean);
-  const timeRe = /(?:at\s+)?(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)/i;
-  return chunks.map(chunk => {
-    const match = chunk.match(timeRe);
-    const duration = chunk.match(/(\d+)\s*(?:minutes?|mins?|دقيقة|دقائق)/i);
-    return { title: chunk.replace(timeRe, '').replace(/\s+/g, ' ').trim(), time: match ? match[1] : '', duration: duration ? duration[1] : '', done: false };
-  }).filter(t => t.title);
-}
-
-function buildPlan() {
-  const input = $('planInput');
-  const tasks = parseSimplePlan(input?.value || '');
-  if (!tasks.length) return;
-  data.tasks = tasks.map(t => ({ ...t, id: Date.now() + Math.random() }));
-  save(); render();
-  if ($('aiMessage')) $('aiMessage').textContent = `Created ${tasks.length} task${tasks.length === 1 ? '' : 's'} from your plan.`;
-  input.value = '';
-}
-
-function startVoice(textareaId, buttonId) {
-  const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const button = $(buttonId); const area = $(textareaId);
-  if (!Speech) {
-    if (button) button.textContent = '🎙️ Voice unavailable';
-    return;
-  }
-  const recognition = new Speech();
-  recognition.lang = /[\u0600-\u06FF]/.test(area.value) ? 'ar-SA' : 'en-US';
-  recognition.interimResults = true;
-  recognition.continuous = false;
-  recognition.onstart = () => { button.textContent = '🔴 Listening…'; button.classList.add('listening'); };
-  recognition.onresult = (event) => {
-    const transcript = Array.from(event.results).map(r => r[0].transcript).join(' ');
-    area.value = transcript;
-  };
-  recognition.onerror = () => { button.textContent = '🎙️ Speak'; button.classList.remove('listening'); };
-  recognition.onend = () => { button.textContent = '🎙️ Speak'; button.classList.remove('listening'); };
-  recognition.start();
-}
-
-function init() {
-  $('planBtn')?.addEventListener('click', buildPlan);
-  $('addTaskBtn')?.addEventListener('click', () => addTask(prompt('Task name?')));
-  $('voiceBtn')?.addEventListener('click', () => startVoice('planInput', 'voiceBtn'));
-  render();
-}
-
-window.TaskManager = {
-  toggle(index) { if (data.tasks[index]) { data.tasks[index].done = !data.tasks[index].done; save(); render(); } },
-  remove(index) { data.tasks.splice(index, 1); save(); render(); },
-  add: addTask,
-  voice: startVoice
-};
-
-document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', init) : init();
+function updateStreak(){const t=todayKey();if(data.lastDate===t)return;const prev=new Date();prev.setDate(prev.getDate()-1);const p=prev.toISOString().slice(0,10);data.streak=data.lastDate===p?data.streak+1:1;data.lastDate=t}
+function addTask(title,time=''){const clean=String(title||'').trim();if(!clean)return false;const m=clean.match(/(\d+)\s*(?:دقيقة|دقائق|minutes?|mins?)/i);data.tasks.push({id:Date.now()+Math.random(),title:clean,time:String(time||''),duration:m?m[1]:'',done:false});save();render();return true}
+function addFromInputs(){const input=$('taskInput'),time=$('timeInput');if(addTask(input?.value,time?.value)){input.value='';time.value='';input.focus()}}
+window.TaskManager={toggle(i){const t=data.tasks[i];if(!t)return;t.done=!t.done;if(t.done){data.xp+=25;updateStreak()}else data.xp=Math.max(0,data.xp-25);save();render()},remove(i){data.tasks.splice(i,1);save();render()},add:addTask};
+function init(){$('addBtn')?.addEventListener('click',addFromInputs);$('taskInput')?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addFromInputs()}});render()}
+document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();
